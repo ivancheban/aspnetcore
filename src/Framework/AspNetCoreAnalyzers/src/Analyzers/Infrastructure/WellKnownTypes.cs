@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.AspNetCore.Analyzers.Infrastructure;
 using Microsoft.AspNetCore.Analyzers.RouteEmbeddedLanguage.Infrastructure;
@@ -63,6 +64,14 @@ internal enum WellKnownType
     Microsoft_Extensions_DependencyInjection_OutputCacheConventionBuilderExtensions,
     Microsoft_AspNetCore_Builder_RateLimiterEndpointConventionBuilderExtensions,
     Microsoft_AspNetCore_Builder_RoutingEndpointConventionBuilderExtensions,
+    Microsoft_AspNetCore_Mvc_RouteAttribute,
+    Microsoft_AspNetCore_Mvc_HttpDeleteAttribute,
+    Microsoft_AspNetCore_Mvc_HttpGetAttribute,
+    Microsoft_AspNetCore_Mvc_HttpHeadAttribute,
+    Microsoft_AspNetCore_Mvc_HttpOptionsAttribute,
+    Microsoft_AspNetCore_Mvc_HttpPatchAttribute,
+    Microsoft_AspNetCore_Mvc_HttpPostAttribute,
+    Microsoft_AspNetCore_Mvc_HttpPutAttribute
 }
 
 internal sealed class WellKnownTypes
@@ -121,6 +130,14 @@ internal sealed class WellKnownTypes
         "Microsoft.Extensions.DependencyInjection.OutputCacheConventionBuilderExtensions",
         "Microsoft.AspNetCore.Builder.RateLimiterEndpointConventionBuilderExtensions",
         "Microsoft.AspNetCore.Builder.RoutingEndpointConventionBuilderExtensions",
+        "Microsoft.AspNetCore.Mvc.RouteAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpGetAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpHeadAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpPatchAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpPostAttribute",
+        "Microsoft.AspNetCore.Mvc.HttpPutAttribute"
     };
 
     public static WellKnownTypes GetOrCreate(Compilation compilation) =>
@@ -190,16 +207,20 @@ internal sealed class WellKnownTypes
         return _lazyWellKnownTypes[index]!;
     }
 
-    public bool IsType(ITypeSymbol type, WellKnownType[] wellKnownTypes)
+    public bool IsType(ITypeSymbol type, WellKnownType[] wellKnownTypes) => IsType(type, wellKnownTypes, out var _);
+
+    public bool IsType(ITypeSymbol type, WellKnownType[] wellKnownTypes, [NotNullWhen(true)] out WellKnownType? match)
     {
         foreach (var wellKnownType in wellKnownTypes)
         {
             if (SymbolEqualityComparer.Default.Equals(type, Get(wellKnownType)))
             {
+                match = wellKnownType;
                 return true;
             }
         }
 
+        match = null;
         return false;
     }
 
