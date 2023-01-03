@@ -41,7 +41,7 @@ internal class Program
     }
 
     [Fact]
-    public async Task DifferentRoutes_DifferentAction_HasDiagnostics()
+    public async Task DifferentRoutes_DifferentAction_NoDiagnostics()
     {
         // Arrange
         var source = @"
@@ -53,6 +53,60 @@ public class WeatherForecastController : ControllerBase
     public object Get() => new object();
 
     [Route(""/b"")]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact]
+    public async Task SameRoute_DifferentMethods_NoDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+public class WeatherForecastController : ControllerBase
+{
+    [HttpGet(""/"")]
+    public object Get() => new object();
+
+    [HttpPost(""/"")]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact]
+    public async Task SameRoute_DifferentMethods_Route_NoDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+public class WeatherForecastController : ControllerBase
+{
+    [HttpGet(""/"")]
+    public object Get() => new object();
+
+    [Route(""/"")]
     public object Get1() => new object();
 }
 internal class Program
