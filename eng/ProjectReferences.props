@@ -27,6 +27,7 @@
     <ProjectReferenceProvider Include="Microsoft.Net.Http.Headers" ProjectPath="$(RepoRoot)src\Http\Headers\src\Microsoft.Net.Http.Headers.csproj" />
     <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http.Abstractions" ProjectPath="$(RepoRoot)src\Http\Http.Abstractions\src\Microsoft.AspNetCore.Http.Abstractions.csproj" />
     <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http.Extensions" ProjectPath="$(RepoRoot)src\Http\Http.Extensions\src\Microsoft.AspNetCore.Http.Extensions.csproj" />
+    <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http.SourceGeneration" ProjectPath="$(RepoRoot)src\Http\Http.Extensions\gen\Microsoft.AspNetCore.Http.SourceGeneration.csproj" />
     <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http.Features" ProjectPath="$(RepoRoot)src\Http\Http.Features\src\Microsoft.AspNetCore.Http.Features.csproj" />
     <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http.Results" ProjectPath="$(RepoRoot)src\Http\Http.Results\src\Microsoft.AspNetCore.Http.Results.csproj" />
     <ProjectReferenceProvider Include="Microsoft.AspNetCore.Http" ProjectPath="$(RepoRoot)src\Http\Http\src\Microsoft.AspNetCore.Http.csproj" />
