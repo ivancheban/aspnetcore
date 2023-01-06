@@ -22,9 +22,9 @@ public partial class MvcAnalyzer
         //
         // Successfully matched action routes must:
         // 1. Be in the same controller.
-        // 2. Have an equivilent route.
+        // 2. Have an equivalent route.
         // 3. Have a matching HTTP method.
-        // 4. Route either be the on the same action, or the actions only have known safe attributes, that don't impact matching.
+        // 4. Route either be the on the same action or the actions only have known safe attributes that don't impact matching.
         if (actionRoutes.Count > 0)
         {
             // Group action routes together. When multiple match in a group, then report action routes to diagnostics.
