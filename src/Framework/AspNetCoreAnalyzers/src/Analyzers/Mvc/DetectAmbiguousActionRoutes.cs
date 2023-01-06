@@ -6,12 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.AspNetCore.Analyzers.Infrastructure;
 using Microsoft.AspNetCore.Analyzers.Infrastructure.RoutePattern;
 using Microsoft.AspNetCore.App.Analyzers.Infrastructure;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.AspNetCore.Analyzers.Mvc;
@@ -20,8 +18,16 @@ public partial class MvcAnalyzer
 {
     private static void DetectAmbiguousActionRoutes(SymbolAnalysisContext context, WellKnownTypes wellKnownTypes, List<ActionRoute> actionRoutes)
     {
+        // Ambiguous action route detection is conservative in what it detects to avoid false positives.
+        //
+        // Successfully matched action routes must:
+        // 1. Be in the same controller.
+        // 2. Have an equivilent route.
+        // 3. Have a matching HTTP method.
+        // 4. Route either be the on the same action, or the actions only have known safe attributes, that don't impact matching.
         if (actionRoutes.Count > 0)
         {
+            // Group action routes together. When multiple match in a group, then report action routes to diagnostics.
             var groupedByParent = actionRoutes
                 .GroupBy(ar => new ActionRouteGroupKey(ar.ActionSymbol, ar.RouteUsageModel.RoutePattern, ar.HttpMethods, wellKnownTypes));
 
@@ -36,26 +42,6 @@ public partial class MvcAnalyzer
                 }
             }
         }
-    }
-
-    private static RouteUsageModel? GetRouteUsageModel(AttributeData attribute, RouteUsageCache routeUsageCache, CancellationToken cancellationToken)
-    {
-        if (attribute.ConstructorArguments.IsEmpty || attribute.ApplicationSyntaxReference is null)
-        {
-            return null;
-        }
-
-        if (attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken) is AttributeSyntax attributeSyntax &&
-            attributeSyntax.ArgumentList is { } argumentList)
-        {
-            var attributeArgument = argumentList.Arguments[0];
-            if (attributeArgument.Expression is LiteralExpressionSyntax literalExpression)
-            {
-                return routeUsageCache.Get(literalExpression.Token, cancellationToken);
-            }
-        }
-
-        return null;
     }
 
     private readonly struct ActionRouteGroupKey : IEquatable<ActionRouteGroupKey>
@@ -94,6 +80,7 @@ public partial class MvcAnalyzer
 
         private static bool CanMatchActions(WellKnownTypes wellKnownTypes, IMethodSymbol actionSymbol1, IMethodSymbol actionSymbol2)
         {
+            // Only match routes 
             if (SymbolEqualityComparer.Default.Equals(actionSymbol1, actionSymbol2))
             {
                 return true;
@@ -107,6 +94,8 @@ public partial class MvcAnalyzer
             return false;
         }
 
+        // A collection of attributes in ASP.NET Core that don't have any impact on route matching and are safe.
+        // Note that route attributes such as [HttpGet] and friends are safe because we compare the route and HTTP method explicitly.
         private static readonly WellKnownType[] KnownMethodAttributeTypes = new[]
         {
             WellKnownType.Microsoft_AspNetCore_Mvc_RouteAttribute,
