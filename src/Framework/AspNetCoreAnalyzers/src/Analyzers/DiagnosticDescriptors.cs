@@ -191,7 +191,7 @@ internal static class DiagnosticDescriptors
     internal static readonly DiagnosticDescriptor AmbiguousActionRoute = new(
         "ASP0023",
         "Route conflict detected between controller actions",
-        "Route '{0}' conflicts with another action route. An HTTP request that matches multiple routes results in an ambiguous match error. Fix the conflict by changing the route's path, HTTP method, or route constraints.",
+        "Route '{0}' conflicts with another action route. An HTTP request that matches multiple routes results in an ambiguous match error. Fix the conflict by changing the route's pattern, HTTP method, or route constraints.",
         "Usage",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

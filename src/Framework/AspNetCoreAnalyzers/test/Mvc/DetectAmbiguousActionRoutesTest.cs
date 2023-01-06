@@ -41,6 +41,177 @@ internal class Program
     }
 
     [Fact]
+    public async Task MixedRoutes_DifferentAction_HasDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+public class WeatherForecastController : ControllerBase
+{
+    [Route({|#0:""/a""|})]
+    public object Get() => new object();
+
+    [Route({|#1:""/a""|})]
+    public object Get1() => new object();
+
+    [Route({|#2:""/a""|})]
+    public object Get2() => new object();
+
+    [HttpGet({|#3:""/b""|})]
+    public object Get3() => new object();
+
+    [HttpGet({|#4:""/b""|})]
+    public object Get4() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        var expectedDiagnostics = new[] {
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(0),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(1),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(2),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/b").WithLocation(3),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/b").WithLocation(4)
+        };
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source, expectedDiagnostics);
+    }
+
+    [Fact]
+    public async Task SameRoutes_DifferentAction_HostAttribute_NoDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+public class WeatherForecastController : ControllerBase
+{
+    [Route(""/a"")]
+    public object Get() => new object();
+
+    [Route(""/a"")]
+    [Host(""consoto.com"")]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact]
+    public async Task SameRoutes_SameAction_HostAttribute_NoDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+public class WeatherForecastController : ControllerBase
+{
+    [Route({|#0:""/a""|})]
+    [Route({|#1:""/a""|})]
+    [Host(""consoto.com"")]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        var expectedDiagnostics = new[] {
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(0),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(1)
+        };
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source, expectedDiagnostics);
+    }
+
+    [Fact]
+    public async Task SameRoutes_DifferentAction_AuthorizeAttribute_HasDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+public class WeatherForecastController : ControllerBase
+{
+    [Route({|#0:""/a""|})]
+    public object Get() => new object();
+
+    [Route({|#1:""/a""|})]
+    [Authorize]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        var expectedDiagnostics = new[] {
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(0),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(1)
+        };
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source, expectedDiagnostics);
+    }
+
+    [Fact]
+    public async Task SameRoutes_SameAction_AuthorizeAttribute_HasDiagnostics()
+    {
+        // Arrange
+        var source = @"
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+public class WeatherForecastController : ControllerBase
+{
+    [Route({|#0:""/a""|})]
+    [Route({|#1:""/a""|})]
+    [Authorize]
+    public object Get1() => new object();
+}
+internal class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+        var expectedDiagnostics = new[] {
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(0),
+            new DiagnosticResult(DiagnosticDescriptors.AmbiguousActionRoute).WithArguments("/a").WithLocation(1)
+        };
+
+        // Act & Assert
+        await VerifyCS.VerifyAnalyzerAsync(source, expectedDiagnostics);
+    }
+
+    [Fact]
     public async Task DifferentRoutes_DifferentAction_NoDiagnostics()
     {
         // Arrange
